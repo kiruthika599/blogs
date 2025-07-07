@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    if (localStorage.getItem("loggedIn") !== "true") {
+      alert("❌ Please log in first!");
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+
+<body id="home">
+
+  <nav class="heading">
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#recent">Recent Blogs</a>
+    <a href="#contact">Contact Us</a>
+    <a href="#" id="logoutBtn">Logout</a>
+  </nav>
+<div class="search">
+        <input placeholder="&#128269 Search blogs..."> 
+      <button>Search</button></div>
+  <section class="banner">
+    <div class="bannerthought">
+      <h1><span> Discover</span> monitor and share engaging content</h1>
+      <p>Welcome to our blog — your go-to space for discovering inspiring stories, trending topics, and insightful content. We explore ideas that spark curiosity and creativity, covering everything from lifestyle and technology to personal growth. Stay connected, stay inspired, and share the journey with us every step of the way!</p>
+      <a href="#blogCRUD" class="btn2">Explore Blogs</a>
+    </div>
+    <div class="bannerimg">
+      <img src="b.jpg" alt="Banner">
+    </div>
+  </section>
+
+  <h1 class="ready" id="about">About us</h1>
+  <div class="aboutus">
+    <div class="aboutimg"><img src="number.jpg" alt="About Image"></div>
+    <div class="aboutcontent"><p>At our blog, we’re passionate storytellers and curious explorers. We aim to deliver meaningful content that informs, entertains, and connects people. Whether it's the latest trends, personal experiences, or helpful guides — we’re here to share ideas that matter. Join us in discovering, learning, and growing together every day.</p></div>
+  </div>
+
+  <div class="recentblogs" id="recent">
+    <h1 class="topic">Recent Blogs</h1>
+    <div class="blogdiv">
+      <div class="indiblog"><img src="num.jpg" alt="Blog Image"><div class="indicontent"><p>I travel not to escape life, but to feel it deeply — through roads, people, and stories. This blog captures moments that moved me, places that changed me, and memories that now live forever in words and photographs</p><a href="#" class="readmore">Read More</a></div></div>
+      <div class="indiblog"><img src="blog2.jpg" alt="Blog Image"><div class="indicontent"><p>Ever wondered how journaling impacts mental clarity? Learn how writing your thoughts can create emotional balance and boost creativity.</p><a href="#" class="readmore">Read More</a></div></div>
+      <div class="indiblog"><img src="blog3.jpg" alt="Blog Image"><div class="indicontent"><p>Let’s talk skincare! From home remedies to trending ingredients — this post covers natural tips for glowing and healthy skin.</p><a href="#" class="readmore">Read More</a></div></div>
+    </div>
+  </div>
+
+
+  
+  <div id="blogCRUD" class="recentblogs">
+    <h1 class="topic">Manage Blogs</h1>
+    <div style="margin-bottom: 20px;">
+      <input type="text" id="title" placeholder="Title" class="formfield">
+      <textarea id="content" placeholder="Content" class="formfield"></textarea>
+      <button onclick="createPost()" class="btn">Add Post</button>
+    </div>
+    <div class="blogdiv" id="blogList"></div>
+  </div>
+
+  <div class="contactimg">
+    <center><img src="blog4.jpg" width="550" height="550" alt="Contact Image"></center>
+  </div>
+
+  <h1 class="miki" id="contact">Contact Us</h1>
+  <div class="contactus">
+    <form>
+      <h2>Get In Touch</h2>
+      <div class="formAddress">
+        <div><i class="fa fa-map-marker"></i> <p><a href="https://www.google.com/maps/place/Thiruvanmiyur,+Chennai,+Tamil+Nadu" target="_blank">
+        <span>Thiruvanmiyur,Chennai</span>
+      </a></p></div>
+        <div><i class="fa fa-envelope-open"></i> <p><a href="mailto:blog@gmail.com">
+        <span>blog@gmail.com</span>
+      </a></p></div>
+        <div><i class="fa fa-phone"></i> <P>+91 78675 45989</P>
+      </div>
+      <input type="text" class="formfield" placeholder="Name" name="name">
+      <input type="text" class="formfield" placeholder="Phone No" name="phone">
+      <input type="email" class="formfield" placeholder="Email Id" name="email">
+      <input type="text" class="formfield" placeholder="Subject" name="subject">
+      <textarea name="message" class="formfield" placeholder="Message"></textarea>
+      <div class="formbtn">
+        <input type="submit" class="btn" value="Submit">
+        <input type="reset" class="btn" value="Reset">
+      </div>
+    </form>
+  </div>
+
+  <script>
+  const apiURL = "http://127.0.0.1:5000/api/posts";
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("⚠️ Please login to access the dashboard.");
+    window.location.href = "login.html";
+  }
+
+  function fetchPosts() {
+    fetch(apiURL)
+      .then(res => res.json())
+      .then(posts => {
+        const blogList = document.getElementById("blogList");
+        blogList.innerHTML = "";
+
+        posts.forEach(post => {
+          const postDiv = document.createElement("div");
+          postDiv.classList.add("indiblog");
+
+          const contentDiv = document.createElement("div");
+          contentDiv.classList.add("indicontent");
+
+          contentDiv.innerHTML = `
+            <h3>${post.title}</h3>
+            <p>${post.content}</p>
+            <button onclick="editPost('${post._id}', \`${post.title}\`, \`${post.content}\`)" class="btn">Edit</button>
+            <button onclick="deletePost('${post._id}')" class="btn">Delete</button>
+          `;
+
+          postDiv.appendChild(contentDiv);
+          blogList.appendChild(postDiv);
+        });
+      })
+      .catch(err => {
+        console.error("❌ Failed to load posts", err);
+      });
+  }
+
+  function createPost() {
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+
+    if (!title || !content) {
+      alert("❌ Title and content cannot be empty!");
+      return;
+    }
+
+    fetch(apiURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content })
+    })
+    .then(res => res.json())
+    .then(() => {
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+      fetchPosts();
+    })
+    .catch(err => {
+      console.error("❌ Failed to create post", err);
+      alert("❌ Failed to create post");
+    });
+  }
+
+  function deletePost(id) {
+    fetch(`${apiURL}/${id}`, { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          fetchPosts();
+        } else {
+          alert("❌ Delete failed: " + data.message);
+        }
+      })
+      .catch(err => {
+        console.error("Error deleting:", err);
+        alert("❌ Something went wrong");
+      });
+  }
+
+  function editPost(id, oldTitle, oldContent) {
+    const newTitle = prompt("Edit Title", oldTitle);
+    const newContent = prompt("Edit Content", oldContent);
+    if (newTitle && newContent) {
+      fetch(`${apiURL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle, content: newContent })
+      }).then(() => fetchPosts());
+    }
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    alert("✅ Logged out!");
+    window.location.href = "login.html";
+  });
+  fetchPosts();
+</script>

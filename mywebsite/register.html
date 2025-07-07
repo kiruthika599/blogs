@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <link rel="stylesheet" href="login.css">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="wrapper">
+    <form id="registerForm">
+      <h1>Register</h1>
+
+      <div class="box">
+        <input id="username" type="text" placeholder="Username" required>
+        <i class='bx bxs-user'></i>
+      </div>
+
+      <div class="box">
+        <input id="email" type="email" placeholder="Email Address" required>
+        <i class='bx bxs-envelope'></i>
+      </div>
+
+      <div class="box">
+        <input id="password" type="password" placeholder="Password" required>
+        <i class='bx bxs-lock-alt'></i>
+      </div>
+
+      <div class="box">
+        <input id="confirmPassword" type="password" placeholder="Confirm Password" required>
+        <i class='bx bxs-lock-alt'></i>
+      </div>
+
+      <button type="submit" class="btn" id="registerBtn">Register</button>
+
+      <div class="register">
+        <p>Already have an account? <a href="login.html">Login</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const registerBtn = document.getElementById("registerBtn");
+
+      if (!username || !email || !password || !confirmPassword) {
+        alert("❌ All fields are required!");
+        return;
+      }
+
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(email)) {
+        alert("❌ Enter a valid email address!");
+        return;
+      }
+
+      if (password.length < 6) {
+        alert("❌ Password must be at least 6 characters!");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert("❌ Passwords do not match!");
+        return;
+      }
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Registering...";
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.success === false) {
+          if (data.message && data.message.toLowerCase().includes("exists")) {
+            alert("⚠️ User already exists, please log in.");
+            window.location.href = "login.html";
+          } else {
+            alert("❌ " + (data.message || "Registration failed!"));
+          }
+        } else {
+          alert("✅ Registered successfully!");
+          window.location.href = "login.html";
+        }
+      } catch (err) {
+        console.error("❌ Fetch error:", err);
+        alert("❌ Failed to connect to server!");
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.textContent = "Register";
+      }
+    });
+  </script>
+</body>
+</html>
